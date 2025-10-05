@@ -1,5 +1,5 @@
 import sys
-from calculo_sodano import sodano_directo
+from calculo_sodano import sodano_directo, dms_to_deg
 from PyQt6.QtCore import Qt, QPropertyAnimation, QRect, QEasingCurve, QTimer
 from PyQt6.QtGui import QFont, QCursor, QColor
 from PyQt6.QtWidgets import (
@@ -436,23 +436,35 @@ class CalculationWindow(QWidget):
         main_layout.addLayout(btn_layout)
 
     def realizar_calculo(self):
-        # Recoge datos de entrada desde los QLineEdit / QComboBox
-        lat1 = float(self.inputs['lat_deg'].text())
-        lon1 = float(self.inputs['lon_deg'].text())
-        az12 = float(self.inputs['az_deg'].text())
+        lat1 = dms_to_deg(
+            self.inputs['lat_deg'].text(),
+            self.inputs['lat_min'].text(),
+            self.inputs['lat_sec'].text(),
+            self.inputs['lat_h'].currentText(),
+            "lat"
+        )
+        lon1 = dms_to_deg(
+            self.inputs['lon_deg'].text(),
+            self.inputs['lon_min'].text(),
+            self.inputs['lon_sec'].text(),
+            self.inputs['lon_h'].currentText(),
+            "lon"
+        )
+        az12 = float(self.inputs['az_deg'].text()) + float(self.inputs['az_min'].text())/60 + float(self.inputs['az_sec'].text())/3600
         S = float(self.inputs['dist'].text())
-        a = float(self.ellipsoid[1])   # semi-major axis
-        f = float(self.ellipsoid[2])   # flattening
+        a = float(self.ellipsoid[1])
+        f = float(self.ellipsoid[2])
 
-        # Ejecuta el cálculo Sodano directo
         resultados = sodano_directo(lat1, lon1, az12, S, a, f)
 
-        # Muestra el resultado final (φ2, λ2), y puedes mostrar todos los pasos en el historial
-        result_str = f"φ2: {resultados['φ2']:.8f}°, λ2: {resultados['λ2']:.8f}°"
+        result_str = (
+            f"φ₂ (lat2): {resultados['φ2']:.8f}°\n"
+            f"λ₂ (lon2): {resultados['λ2']:.8f}°\n"
+            f"A₂₁ (azimut2): {resultados['A21']:.8f}°"
+        )
         steps_str = "\n".join([f"{k}: {v}" for k,v in resultados.items()])
         self.label_resultado.setText(result_str)
 
-        # Para el historial, guarda también todos los pasos
         self.parent.calculos_historial.append({
             "entrada": {
                 "lat1": lat1,
