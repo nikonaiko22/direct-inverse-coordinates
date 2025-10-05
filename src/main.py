@@ -38,9 +38,8 @@ def lerp_color(color1, color2, t):
     ).name()
 
 class MethodCard(QFrame):
-    def __init__(self, method, color, expand_callback):
+    def __init__(self, color, expand_callback):
         super().__init__()
-        self.method = method
         self.color = color
         self.expand_callback = expand_callback
         self.selected_ellipsoid = None
@@ -60,13 +59,10 @@ class MethodCard(QFrame):
         self.layout.setSpacing(15)
         icon_label = QLabel()
         icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        if method == "Sodano":
-            icon_label.setText("🌐")
-        else:
-            icon_label.setText("🧮")
+        icon_label.setText("🌐")
         icon_label.setFont(QFont("Segoe UI Emoji", 40))
         self.layout.addWidget(icon_label, alignment=Qt.AlignmentFlag.AlignCenter)
-        title = QLabel(method)
+        title = QLabel("Sodano")
         title.setFont(QFont("Segoe UI", 22, QFont.Weight.Bold))
         title.setStyleSheet(f"color: {color}; margin-bottom:6px;")
         self.layout.addWidget(title, alignment=Qt.AlignmentFlag.AlignCenter)
@@ -594,33 +590,24 @@ class MainWindow(QWidget):
         title.setFont(QFont("Segoe UI", 22, QFont.Weight.Bold))
         title.setStyleSheet("color: #222; letter-spacing: 2px; margin-bottom: 4px;")
         main_layout.addWidget(title, alignment=Qt.AlignmentFlag.AlignCenter)
-        subtitle = QLabel("Direct and inverse geodetic calculations with Sodano and Puissant methods")
+        subtitle = QLabel("Direct and inverse geodetic calculations with Sodano method")
         subtitle.setFont(QFont("Segoe UI", 12))
         subtitle.setStyleSheet("color: #7c7c7c; margin-bottom: 10px;")
         main_layout.addWidget(subtitle, alignment=Qt.AlignmentFlag.AlignCenter)
         card_layout = QHBoxLayout()
         sodano_color = "#2563eb"
-        puissant_color = "#f59e42"
         def expand_card(card_clicked):
-            for card in [self.sodano_card, self.puissant_card]:
-                if card is not card_clicked and card.expanded:
-                    card.collapse()
-        self.sodano_card = MethodCard("Sodano", sodano_color, expand_card)
-        self.puissant_card = MethodCard("Puissant", puissant_color, expand_card)
+            if card_clicked.expanded:
+                return
+            card_clicked.expand(True)
+        self.sodano_card = MethodCard(sodano_color, expand_card)
         card_layout.addWidget(self.sodano_card)
-        card_layout.addWidget(self.puissant_card)
         main_layout.addLayout(card_layout)
         self.sodano_card.forward_btn.clicked.connect(
             lambda: self.open_calc("Sodano", "forward", self.sodano_card.selected_ellipsoid)
         )
         self.sodano_card.inverse_btn.clicked.connect(
             lambda: self.open_calc("Sodano", "inverse", self.sodano_card.selected_ellipsoid)
-        )
-        self.puissant_card.forward_btn.clicked.connect(
-            lambda: self.open_calc("Puissant", "forward", self.puissant_card.selected_ellipsoid)
-        )
-        self.puissant_card.inverse_btn.clicked.connect(
-            lambda: self.open_calc("Puissant", "inverse", self.puissant_card.selected_ellipsoid)
         )
         main_layout.addItem(QSpacerItem(10, 10, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
 
